@@ -22,7 +22,7 @@ from gettext import gettext as _
 from utils.play_audio import play_audio_from_file
 
 import logging
-_logger = logging.getLogger('iknowmyabcs-activity')
+_logger = logging.getLogger('lettermatch-activity')
 
 try:
     from sugar.graphics import style
