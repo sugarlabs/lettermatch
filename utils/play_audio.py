@@ -37,23 +37,24 @@ GST_PATHS = ['/usr/bin/gst-launch', '/bin/gst-launch',
              '/usr/local/bin/gst-launch-0.10']
 
 
-def play_audio_from_file(parent, file_path):
+def play_audio_from_file(file_path):
     """ Audio media """
 
-    gstlaunch = None
-    for path in GST_PATHS:
-        if os.path.exists(path):
-            gstlaunch = path
-            break
+    if not hasattr(play_audio_from_file, 'gst_launch'):
+        for path in GST_PATHS:
+            if os.path.exists(path):
+                play_audio_from_file.gst_launch = path
+                _logger.debug(path)
+                break
 
-    if gstlaunch is None:
+    if not hasattr(play_audio_from_file, 'gst_launch'):
         _logger.debug('gst-launch not found')
         return
 
-    command_line = [gstlaunch, 'filesrc', 'location=' + file_path,
-                    '! oggdemux', '! vorbisdec', '! audioconvert',
-                    '! alsasink']
-    check_output(command_line, 'unable to play audio %s' % (file_path))
+    command_line = [play_audio_from_file.gst_launch, 'filesrc',
+                    'location=' + file_path, '! oggdemux', '! vorbisdec',
+                    '! audioconvert', '! alsasink']
+    check_output(command_line, 'unable to play audio file %s' % (file_path))
 
 
 def check_output(command, warning):

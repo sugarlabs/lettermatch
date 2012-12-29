@@ -223,11 +223,11 @@ class Page():
 
     def _play_target_sound(self):
         if self._activity.mode == 'letter':
-            play_audio_from_file(self, os.path.join(
+            play_audio_from_file(os.path.join(
                     self._sounds_path,
                     self._media_data[self.target][1]))
         else:
-            play_audio_from_file(self, os.path.join(
+            play_audio_from_file(os.path.join(
                     self._sounds_path,
                     self._media_data[self.target][0]))
         self.timeout = None
@@ -258,20 +258,20 @@ class Page():
 
         if self._activity.mode == 'letter':
             if spr in self._cards:
-                play_audio_from_file(self, os.path.join(
+                play_audio_from_file(os.path.join(
                         self._sounds_path,
                         self._media_data[self.current_card][1]))
                 return
-            play_audio_from_file(self, os.path.join(
+            play_audio_from_file(os.path.join(
                     self._sounds_path,
                     self._media_data[self.current_card][0]))
         else:
             if spr in self._pictures:
-                play_audio_from_file(self, os.path.join(
+                play_audio_from_file(os.path.join(
                         self._sounds_path,
                         self._media_data[self.current_card][0]))
                 return
-            play_audio_from_file(self, os.path.join(
+            play_audio_from_file(os.path.join(
                     self._sounds_path,
                     self._media_data[self.current_card][1]))
 
