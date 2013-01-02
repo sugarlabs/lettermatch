@@ -15,10 +15,11 @@ import gtk
 import gobject
 import os
 import codecs
-from random import uniform
+from random import uniform, choice
 
 from gettext import gettext as _
 
+from sugar.datastore import datastore
 from utils.play_audio import play_audio_from_file
 
 import logging
@@ -53,7 +54,6 @@ class Page():
         self._card_data = []
         self._color_data = []
         self._image_data = []
-        self._media_data = []  # (image sound, letter sound)
         self._word_data = []
 
         # Starting from command line
@@ -96,7 +96,7 @@ class Page():
 
         # Create the cards we'll need
         self._alpha_cards()
-        self._image_cards()
+        self.load_from_journal(self._activity.data_from_journal)
 
         self.new_page()
 
@@ -114,15 +114,20 @@ class Page():
             x = self._grid_x_offset + GUTTER
             y = self._grid_y_offset + self._card_height + GUTTER * 3
             for i in range(len(self.answers)):
-                self._pictures[self.answers[i]].move((x, y))
-                self._pictures[self.answers[i]].set_layer(100)
+                alphabet = self._card_data[self.answers[i]][0]
+                # select the sprite randomly
+                s = choice(self._image_data[alphabet])[0]
+                s.move((x, y))
+                s.set_layer(100)
                 x += self._card_width + GUTTER * 2
                 if x > self._width - (self._card_width / 2):
                     x = self._grid_x_offset + GUTTER
                     y += self._card_height + GUTTER * 2
         else:
-            self._pictures[self.target].move((x, y))
-            self._pictures[self.target].set_layer(100)
+            alphabet = self._card_data[self.target][0]
+            s = choice(self._image_data[alphabet])[0]
+            s.move((x, y))
+            s.set_layer(100)
             x = self._grid_x_offset + GUTTER
             y = self._grid_y_offset + self._card_height + GUTTER * 3
             for i in range(len(self.answers)):
@@ -140,15 +145,6 @@ class Page():
         if len(self._pictures) > 0:
             for card in self._pictures:
                 card.hide()
-
-    def _image_cards(self):
-        for card in self._card_data:
-            self.current_card = self._card_data.index(card)
-            imagefilename = self._image_data[self.current_card]
-            imagepath = os.path.join(self._images_path, imagefilename)
-            pixbuf = image_file_to_pixbuf(imagepath, self._card_width,
-                                          self._card_height)
-            self._pictures.append(Sprite(self._sprites, 0, 0, pixbuf))
 
     def _alpha_cards(self):
         for card in self._card_data:
@@ -223,13 +219,10 @@ class Page():
 
     def _play_target_sound(self):
         if self._activity.mode == 'letter':
-            play_audio_from_file(os.path.join(
-                    self._sounds_path,
-                    self._media_data[self.target][1]))
+            play_audio_from_file(self._card_data[self.target][-1])
         else:
-            play_audio_from_file(os.path.join(
-                    self._sounds_path,
-                    self._media_data[self.target][0]))
+            # XXX: Fix me
+            pass
         self.timeout = None
 
     def _button_press_cb(self, win, event):
@@ -248,32 +241,34 @@ class Page():
 
         x, y = map(int, event.get_coords())
         spr = self._sprites.find_sprite((x, y))
+
         self.current_card = -1
-        if spr in self._cards:
-            self.current_card = self._cards.index(spr)
-        elif spr in self._pictures:
-            self.current_card = self._pictures.index(spr)
-        if self.current_card == -1:
-            return
 
         if self._activity.mode == 'letter':
             if spr in self._cards:
-                play_audio_from_file(os.path.join(
-                        self._sounds_path,
-                        self._media_data[self.current_card][1]))
+                self.current_card = self._cards.index(spr)
+                play_audio_from_file(self._card_data[self.current_card][-1])
                 return
-            play_audio_from_file(os.path.join(
-                    self._sounds_path,
-                    self._media_data[self.current_card][0]))
+
+            for a in self._image_data:
+                for b in self._image_data[a]:
+                    if spr == b[0]:
+                         play_audio_from_file(b[1])
+                         for c in range(len(self._card_data)):
+                            if self._card_data[c][0] == a:
+                                self.current_card = c
+                                break
+                         break
         else:
-            if spr in self._pictures:
-                play_audio_from_file(os.path.join(
-                        self._sounds_path,
-                        self._media_data[self.current_card][0]))
-                return
-            play_audio_from_file(os.path.join(
-                    self._sounds_path,
-                    self._media_data[self.current_card][1]))
+            for a in self._image_data:
+                for b in self._image_data[a]:
+                    if spr == b[0]:
+                        play_audio_from_file(b[1])
+                        return
+
+            if spr in self._cards:
+                self.current_card = self._cards.index(spr)
+                play_audio_from_file(self._card_data[self.current_card][-1])
 
         if self.current_card == self.target:
             self._activity.status.set_text(_('Very good!'))
@@ -320,30 +315,52 @@ class Page():
     def load_level(self, path):
         ''' Load a level (CSV) from path: letter, word, color, image,
         image sound, letter sound '''
-        self._card_data = []
-        self._color_data = []
-        self._image_data = []
-        self._media_data = []  # (image sound, letter sound)
+        self._card_data = [] # (letter, word, letter_sound_path)
+        self._color_data = [] 
+        self._image_data = {} # {letter: [(Sprite, image_sound_path)...]}
+        self._pictures = []
         f = codecs.open(path, encoding='utf-8')
         for line in f:
             if len(line) > 0 and line[0] not in '#\n':
                 words = line.split(', ')
-                self._card_data.append([words[0], 
-                                        words[1].replace('-', ', ')])
+                self._card_data.append((words[0], 
+                                        words[1].replace('-', ', '),
+                                     os.path.join(self._sounds_path, words[5])))
                 if words[2].count('#') > 1:
                     self._color_data.append(
                         [words[2].split('/')])
                 else:
                     self._color_data.append(
                         [words[2]])
-                self._image_data.append(words[3])
-                self._media_data.append((words[4], words[5]))
+                imagefilename = words[3]
+                imagepath = os.path.join(self._images_path, imagefilename)
+                pixbuf = image_file_to_pixbuf(imagepath, self._card_width,
+                                              self._card_height)
+                s = Sprite(self._sprites, 0, 0, pixbuf)
+                self._image_data[words[0]] = \
+                    [(s, os.path.join(self._sounds_path, words[4]))]
+                self._pictures.append(s)
         f.close()
-
         self._clear_all()
         self._cards = []
         self._colored_letters_lower = []
         self._colored_letters_upper = []
+
+    def load_from_journal(self, journal_data):
+        for card in self._card_data:
+            alphabet = card[0]
+            if alphabet in journal_data:
+                for images in journal_data[alphabet]:
+                    imagedataobject = datastore.get(images[0])
+                    audiodataobject = datastore.get(images[1])
+                    if imagedataobject and audiodataobject:
+                        imagepath = imagedataobject.get_file_path()
+                        pixbuf = image_file_to_pixbuf(imagepath, self._card_width,
+                                                      self._card_height)
+                        audiopath = audiodataobject.get_file_path()
+                        s = Sprite(self._sprites, 0, 0, pixbuf)
+                        self._image_data[alphabet].append((s, audiopath))
+                        self._pictures.append(s)
 
     def _clear_all(self):
         ''' Hide everything so we can begin a new page. '''

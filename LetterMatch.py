@@ -24,22 +24,26 @@ if _HAVE_TOOLBOX:
     from sugar.activity.widgets import ActivityToolbarButton
     from sugar.activity.widgets import StopButton
 
+
 from sugar.graphics.toolbutton import ToolButton
 from sugar.graphics.combobox import ComboBox
 from sugar.graphics.toolcombobox import ToolComboBox
 from sugar.datastore import datastore
 from sugar import profile
+from sugar.graphics.objectchooser import ObjectChooser
+from sugar import mime
 
 from gettext import gettext as _
 import os.path
 
 from page import Page
 from utils.play_audio import play_audio_from_file
-from utils.toolbar_utils import separator_factory, label_factory, radio_factory
+from utils.toolbar_utils import separator_factory, label_factory, \
+                                radio_factory, button_factory
 
+import json
 import logging
 _logger = logging.getLogger('lettermatch-activity')
-
 
 class LetterMatch(activity.Activity):
     ''' Learning the alphabet. 
@@ -59,6 +63,9 @@ class LetterMatch(activity.Activity):
 
         self.datapath = get_path(activity, 'instance')
 
+        self.image_id = None
+        self.audio_id = None
+
         if 'LANG' in os.environ:
             language = os.environ['LANG'][0:2]
         elif 'LANGUAGE' in os.environ:
@@ -68,6 +75,7 @@ class LetterMatch(activity.Activity):
 
         # FIXME: find some reasonable default situation
         language = 'es'
+        self.letter = None
 
         if os.path.exists(os.path.join('~', 'Activities',
                                        'IKnowMyABCs.activity')):
@@ -79,6 +87,9 @@ class LetterMatch(activity.Activity):
 
         self._images_path = self._lessons_path.replace('lessons', 'images')
         self._sounds_path = self._lessons_path.replace('lessons', 'sounds')
+        self.data_from_journal = {}
+        if 'data_from_journal' in self.metadata:
+            self.data_from_journal = json.load(self.metadata['data_from_journal'])
         self._setup_toolbars()
 
         # Create a canvas
@@ -137,13 +148,81 @@ class LetterMatch(activity.Activity):
 
         self.status = label_factory(primary_toolbar, '', width=300)
 
+        self.letter_entry = None
+
         if _HAVE_TOOLBOX:
+            separator_factory(primary_toolbar, False, True)
+
+            journal_toolbar = ToolbarBox()
+
+            button_factory('letter', journal_toolbar.toolbar,
+                           self._choose_from_journal_cb,
+                           tooltip=_("Import from journal"))
+
+            container = gtk.ToolItem()
+            self.letter_entry = gtk.Entry()
+            self.letter_entry.connect('changed', self._set_letter)
+            self.letter_entry.set_sensitive(False)
+            self.letter_entry.show()
+            container.add(self.letter_entry)
+            container.show_all()
+            journal_toolbar.toolbar.insert(container, -1)
+
+            self.add_button = button_factory('image', journal_toolbar.toolbar,
+                                             self._copy_to_journal,
+                                             tooltip=_("Add"))
+            self.add_button.set_sensitive(False)
+
+            # Add journal toolbar
+            journal_toolbar_button = ToolbarButton(icon_name='view-source',
+                                                   page=journal_toolbar)
+            toolbox.toolbar.insert(journal_toolbar_button, -1)
+
             separator_factory(primary_toolbar, True, False)
 
             stop_button = StopButton(self)
             stop_button.props.accelerator = '<Ctrl>q'
             toolbox.toolbar.insert(stop_button, -1)
             stop_button.show()
+
+    def _set_letter(self, event):
+        text = self.letter_entry.get_text().strip()
+        if text and len(text) > 0:
+            if len(text) != 1:
+                text = text[0]
+                self.letter_entry.set_text(text)
+            self.letter = text
+            if self.letter in self.data_from_journal:
+                self.data_from_journal[self.letter].append(
+                                            (self.image_id, self.audio_id))
+            else:
+                self.data_from_journal[self.letter] = \
+                                [(self.image_id, self.audio_id)]
+            self.add_button.set_sensitive(True)
+        else:
+            self.letter = None
+            self.add_button.set_sensitive(False)
+
+    def _copy_to_journal(self, event):
+        self.metadata['data_from_journal'] = json.dumps(self.data_from_journal)
+
+    def _choose_from_journal_cb(self, event):
+        self.add_button.set_sensitive(False)
+        self.letter_entry.set_sensitive(False)
+        self.image_id = None
+        self.audio_id = None
+        chooser = ObjectChooser(what_filter=mime.GENERIC_TYPE_IMAGE)
+        result = chooser.run()
+        if result == gtk.RESPONSE_ACCEPT:
+            jobject = chooser.get_selected_object()
+            self.image_id = str(jobject._object_id)
+            chooser = ObjectChooser(what_filter=mime.GENERIC_TYPE_AUDIO)
+            result = chooser.run()
+            if result == gtk.RESPONSE_ACCEPT:
+                jobject = chooser.get_selected_object()
+                self.audio_id = str(jobject._object_id)
+        if self.image_id and self.audio_id:
+            self.letter_entry.set_sensitive(True)
 
     def _letter_cb(self, event=None):
         ''' click on card to hear the letter name '''
@@ -166,7 +245,6 @@ class LetterMatch(activity.Activity):
         if not hasattr(self, '_page'):
             return
         self.metadata['page'] = str(self._page.current_card)
-
 
 def get_path(activity, subpath):
     """ Find a Rainbow-approved place for temporary files. """
