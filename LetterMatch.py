@@ -189,8 +189,9 @@ class LetterMatch(activity.Activity):
         text = self.letter_entry.get_text().strip()
         if text and len(text) > 0:
             if len(text) != 1:
-                text = text[0]
-                self.letter_entry.set_text(text)
+                text = text[0].upper()
+            text = text.upper()
+            self.letter_entry.set_text(text)
             self.letter = text
             if self.letter in self.data_from_journal:
                 self.data_from_journal[self.letter].append(
