@@ -55,6 +55,7 @@ class Page():
         self._color_data = []
         self._image_data = []
         self._word_data = []
+        self.chosen_image = None
 
         # Starting from command line
         if self._activity is None:
@@ -125,7 +126,8 @@ class Page():
                     y += self._card_height + GUTTER * 2
         else:
             alphabet = self._card_data[self.target][0]
-            s = choice(self._image_data[alphabet])[0]
+            self.chosen_image = choice(self._image_data[alphabet])
+            s = self.chosen_image[0]
             s.move((x, y))
             s.set_layer(100)
             x = self._grid_x_offset + GUTTER
@@ -221,8 +223,7 @@ class Page():
         if self._activity.mode == 'letter':
             play_audio_from_file(self._card_data[self.target][-1])
         else:
-            # XXX: Fix me
-            pass
+            play_audio_from_file(self.chosen_image[-1])
         self.timeout = None
 
     def _button_press_cb(self, win, event):
