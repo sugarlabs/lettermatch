@@ -89,7 +89,7 @@ class LetterMatch(activity.Activity):
         self._sounds_path = self._lessons_path.replace('lessons', 'sounds')
         self.data_from_journal = {}
         if 'data_from_journal' in self.metadata:
-            self.data_from_journal = json.load(self.metadata['data_from_journal'])
+            self.data_from_journal = json.loads(str(self.metadata['data_from_journal']))
         self._setup_toolbars()
 
         # Create a canvas
