@@ -1,4 +1,5 @@
-#Copyright (c) 2012 Walter Bender
+# Copyright (c) 2012 Walter Bender
+# Copyright (c) 2013 Aneesh Dogra <lionaneesh@gmail.com>
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -155,9 +156,13 @@ class LetterMatch(activity.Activity):
 
             journal_toolbar = ToolbarBox()
 
-            button_factory('letter', journal_toolbar.toolbar,
-                           self._choose_from_journal_cb,
-                           tooltip=_("Import from journal"))
+            button_factory('load_image_from_journal', journal_toolbar.toolbar,
+                           self._choose_image_from_journal_cb,
+                           tooltip=_("Import Image"))
+
+            button_factory('load_audio_from_journal', journal_toolbar.toolbar,
+                           self._choose_audio_from_journal_cb,
+                           tooltip=_("Import Audio"))
 
             container = gtk.ToolItem()
             self.letter_entry = gtk.Entry()
@@ -168,7 +173,7 @@ class LetterMatch(activity.Activity):
             container.show_all()
             journal_toolbar.toolbar.insert(container, -1)
 
-            self.add_button = button_factory('image', journal_toolbar.toolbar,
+            self.add_button = button_factory('add', journal_toolbar.toolbar,
                                              self._copy_to_journal,
                                              tooltip=_("Add"))
             self.add_button.set_sensitive(False)
@@ -207,21 +212,27 @@ class LetterMatch(activity.Activity):
     def _copy_to_journal(self, event):
         self.metadata['data_from_journal'] = json.dumps(self.data_from_journal)
 
-    def _choose_from_journal_cb(self, event):
+    def _choose_audio_from_journal_cb(self, event):
+        self.add_button.set_sensitive(False)
+        self.letter_entry.set_sensitive(False)
+        self.audio_id = None
+        chooser = ObjectChooser(what_filter=mime.GENERIC_TYPE_AUDIO)
+        result = chooser.run()
+        if result == gtk.RESPONSE_ACCEPT:
+            jobject = chooser.get_selected_object()
+            self.audio_id = str(jobject._object_id)
+        if self.image_id and self.audio_id:
+            self.letter_entry.set_sensitive(True)
+
+    def _choose_image_from_journal_cb(self, event):
         self.add_button.set_sensitive(False)
         self.letter_entry.set_sensitive(False)
         self.image_id = None
-        self.audio_id = None
         chooser = ObjectChooser(what_filter=mime.GENERIC_TYPE_IMAGE)
         result = chooser.run()
         if result == gtk.RESPONSE_ACCEPT:
             jobject = chooser.get_selected_object()
             self.image_id = str(jobject._object_id)
-            chooser = ObjectChooser(what_filter=mime.GENERIC_TYPE_AUDIO)
-            result = chooser.run()
-            if result == gtk.RESPONSE_ACCEPT:
-                jobject = chooser.get_selected_object()
-                self.audio_id = str(jobject._object_id)
         if self.image_id and self.audio_id:
             self.letter_entry.set_sensitive(True)
 
