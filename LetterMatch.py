@@ -33,6 +33,8 @@ from sugar.datastore import datastore
 from sugar import profile
 from sugar.graphics.objectchooser import ObjectChooser
 from sugar import mime
+from utils.sprites import Sprites, Sprite
+from utils.play_audio import play_audio_from_file
 
 from gettext import gettext as _
 import os.path
@@ -44,6 +46,7 @@ from utils.toolbar_utils import separator_factory, label_factory, \
 
 import json
 import logging
+
 _logger = logging.getLogger('lettermatch-activity')
 
 class LetterMatch(activity.Activity):
@@ -66,6 +69,8 @@ class LetterMatch(activity.Activity):
 
         self.image_id = None
         self.audio_id = None
+        self.is_customization_toolbar = False
+        self.is_customization_toolbar_button = False
 
         if 'LANG' in os.environ:
             language = os.environ['LANG'][0:2]
@@ -94,17 +99,17 @@ class LetterMatch(activity.Activity):
         self._setup_toolbars()
 
         # Create a canvas
-        canvas = gtk.DrawingArea()
+        self.canvas = gtk.DrawingArea()
         width = gtk.gdk.screen_width()
         height = int(gtk.gdk.screen_height())
-        canvas.set_size_request(width, height)
-        canvas.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("#000000"))
-        canvas.show()
-        self.set_canvas(canvas)
+        self.canvas.set_size_request(width, height)
+        self.canvas.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("#000000"))
+        self.canvas.show()
+        self.set_canvas(self.canvas)
 
         self.mode = 'letter'
 
-        self._page = Page(canvas, self._lessons_path,
+        self._page = Page(self.canvas, self._lessons_path,
                           self._images_path, self._sounds_path,
                           parent=self)
 
@@ -179,9 +184,11 @@ class LetterMatch(activity.Activity):
             self.add_button.set_sensitive(False)
 
             # Add journal toolbar
-            journal_toolbar_button = ToolbarButton(icon_name='view-source',
+            self.journal_toolbar_button = ToolbarButton(icon_name='view-source',
                                                    page=journal_toolbar)
-            toolbox.toolbar.insert(journal_toolbar_button, -1)
+            self.journal_toolbar_button.connect('clicked',
+                                                self._customization_toolbar_cb)
+            toolbox.toolbar.insert(self.journal_toolbar_button, -1)
 
             separator_factory(primary_toolbar, True, False)
 
@@ -211,6 +218,52 @@ class LetterMatch(activity.Activity):
 
     def _copy_to_journal(self, event):
         self.metadata['data_from_journal'] = json.dumps(self.data_from_journal)
+        self._page.load_from_journal(self.data_from_journal)
+        self._init_preview()
+        self.image_id = None
+        self.object_id = None
+        self.add_button.set_sensitive(False)
+        self.letter_entry.set_text('')
+        self.letter_entry.set_sensitive(False)
+
+    def _init_preview(self):
+            x = self._page._grid_x_offset + self._page._card_width + 12
+            y = self._page._grid_y_offset + 40
+            w = self._page._card_width
+            h = self._page._card_height
+
+            pixbuf = gtk.gdk.pixbuf_new_from_file_at_size( \
+                        os.path.join(self._images_path,'../drawing.png'), int(w),
+                        int(h))
+            self.status.set_text(_('Please chose an image and ' \
+                                   'an audio clip from the journal'))
+            self._page._hide_cards()
+            
+            self.preview_image = Sprite(self._page._sprites, 0, 0, pixbuf)
+            self.preview_image.move((x, y))
+            self.preview_image.set_layer(100)
+            self._page._canvas.disconnect(self._page.button_press_event_id)
+            self._page._canvas.disconnect(self._page.button_release_event_id)
+            self._page.button_press_event_id = \
+                self._page._canvas.connect('button-press-event',
+                                           self._keypress_preview)
+            self._page.button_release_event_id = \
+                self._page._canvas.connect('button-release-event', self._dummy)
+            self.is_customization_toolbar = True
+
+    def _customization_toolbar_cb(self, event):
+        if not self.is_customization_toolbar_button:
+            self.is_customization_toolbar_button = True
+            self._init_preview()
+        else:
+            self.is_customization_toolbar_button = False
+
+    def _keypress_preview(self, win, event):
+        self._choose_image_from_journal_cb(None)
+
+    def _dummy(self, win, event):
+        '''Does nothing'''
+        return True
 
     def _choose_audio_from_journal_cb(self, event):
         self.add_button.set_sensitive(False)
@@ -221,8 +274,16 @@ class LetterMatch(activity.Activity):
         if result == gtk.RESPONSE_ACCEPT:
             jobject = chooser.get_selected_object()
             self.audio_id = str(jobject._object_id)
+            self._page._canvas.disconnect(self._page.button_press_event_id)
+            self._page.button_press_event_id = \
+                self._page._canvas.connect('button-press-event',
+                                           self._play_audio_cb)
         if self.image_id and self.audio_id:
             self.letter_entry.set_sensitive(True)
+
+    def _play_audio_cb(self, win, event):
+        if self.audio_id:
+            play_audio_from_file(datastore.get(self.audio_id).get_file_path())
 
     def _choose_image_from_journal_cb(self, event):
         self.add_button.set_sensitive(False)
@@ -233,11 +294,39 @@ class LetterMatch(activity.Activity):
         if result == gtk.RESPONSE_ACCEPT:
             jobject = chooser.get_selected_object()
             self.image_id = str(jobject._object_id)
+
+            x = self._page._grid_x_offset + self._page._card_width + 12
+            y = self._page._grid_y_offset + 40
+            w = self._page._card_width
+            h = self._page._card_height
+
+            pb = gtk.gdk.pixbuf_new_from_file_at_size(jobject.get_file_path(),
+                                                      w, h)
+            self.preview_image.hide()            
+            self.preview_image = Sprite(self._page._sprites, 0, 0, pb)
+            self.preview_image.move((x, y))
+            self.preview_image.set_layer(100)
         if self.image_id and self.audio_id:
             self.letter_entry.set_sensitive(True)
 
+    def _cleanup_preview(self):
+        self.preview_image.hide()
+        self._page._canvas.disconnect(self._page.button_press_event_id)
+        self._page._canvas.disconnect(self._page.button_release_event_id)
+        self._page.button_release_event_id = \
+            self._canvas.connect("button-release-event",
+                                  self._page._button_release_cb)
+        self._page.button_press_event_id = \
+                self._canvas.connect("button-press-event",
+                                     self._page._button_press_cb)
+        self._page.new_page()
+        self.is_customization_toolbar = False
+
     def _letter_cb(self, event=None):
         ''' click on card to hear the letter name '''
+        if self.is_customization_toolbar:
+            self._cleanup_preview()
+
         self.mode = 'letter'
         self.status.set_text(_('Click on the picture that matches the letter.'))
         if hasattr(self, '_page'):
@@ -246,6 +335,10 @@ class LetterMatch(activity.Activity):
 
     def _picture_cb(self, event=None):
         ''' click on card to hear the letter name '''
+        if self.is_customization_toolbar:
+            self._cleanup_preview()
+            self.is_customization_toolbar = False
+
         self.mode = 'picture'
         self.status.set_text(_('Click on the letter that matches the picture.'))
         if hasattr(self, '_page'):

@@ -70,8 +70,11 @@ class Page():
         self._canvas.add_events(gtk.gdk.BUTTON_PRESS_MASK)
         self._canvas.add_events(gtk.gdk.BUTTON_RELEASE_MASK)
         self._canvas.connect("expose-event", self._expose_cb)
-        self._canvas.connect("button-press-event", self._button_press_cb)
-        self._canvas.connect("button-release-event", self._button_release_cb)
+        self.button_release_event_id = \
+          self._canvas.connect("button-release-event", self._button_release_cb)
+        self.button_press_event_id = \
+          self._canvas.connect("button-press-event", self._button_press_cb)
+                
         self._canvas.connect("key_press_event", self._keypress_cb)
         self._width = gtk.gdk.screen_width()
         self._height = gtk.gdk.screen_height()
