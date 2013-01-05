@@ -1,4 +1,4 @@
-# Copyright (c) 2012 Walter Bender
+# Copyright (c) 2012, 2013 Walter Bender
 # Copyright (c) 2013 Aneesh Dogra <lionaneesh@gmail.com>
 
 # This program is free software; you can redistribute it and/or modify
@@ -15,17 +15,9 @@
 import gtk
 
 from sugar.activity import activity
-try:
-    from sugar.graphics.toolbarbox import ToolbarBox, ToolbarButton
-    _HAVE_TOOLBOX = True
-except ImportError:
-    _HAVE_TOOLBOX = False
-
-if _HAVE_TOOLBOX:
-    from sugar.activity.widgets import ActivityToolbarButton
-    from sugar.activity.widgets import StopButton
-
-
+from sugar.graphics.toolbarbox import ToolbarBox, ToolbarButton
+from sugar.activity.widgets import ActivityToolbarButton
+from sugar.activity.widgets import StopButton
 from sugar.graphics.toolbutton import ToolButton
 from sugar.graphics.combobox import ComboBox
 from sugar.graphics.toolcombobox import ToolComboBox
@@ -48,17 +40,18 @@ import logging
 
 _logger = logging.getLogger('lettermatch-activity')
 
+
 class LetterMatch(activity.Activity):
     ''' Learning the alphabet. 
 
-    Level1: The alphabet appears and the user has the option to click
-    on a letter to listen the name of it and the sound of it.
+    Level1: A letter card and six picture cards appear; the user
+    listens to the name of letter and then selects the matching picture.
 
-    Level2: The letters appear randomly and the user must place them
-    in the correct order.
+    Level2: A picture card and six letter cards appear; the user
+    listens to the name of the picture and then selects the matching letter.
 
-    Level3: The laptop says a letter and the user must click on the
-    correct one. '''
+    Customization toolbar allows loading of new images and sounds.
+    '''
 
     def __init__(self, handle):
         ''' Initialize the toolbars and the reading board '''
@@ -68,8 +61,6 @@ class LetterMatch(activity.Activity):
 
         self.image_id = None
         self.audio_id = None
-        self.is_customization_toolbar = False
-        self.is_customization_toolbar_button = False
 
         if 'LANG' in os.environ:
             language = os.environ['LANG'][0:2]
@@ -94,14 +85,13 @@ class LetterMatch(activity.Activity):
         self._sounds_path = self._lessons_path.replace('lessons', 'sounds')
         self.data_from_journal = {}
         if 'data_from_journal' in self.metadata:
-            self.data_from_journal = json.loads(str(self.metadata['data_from_journal']))
+            self.data_from_journal = json.loads(
+                str(self.metadata['data_from_journal']))
         self._setup_toolbars()
 
-        # Create a canvas
         self.canvas = gtk.DrawingArea()
-        width = gtk.gdk.screen_width()
-        height = int(gtk.gdk.screen_height())
-        self.canvas.set_size_request(width, height)
+        self.canvas.set_size_request(gtk.gdk.screen_width(),
+                                     gtk.gdk.screen_height())
         self.canvas.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("#000000"))
         self.canvas.show()
         self.set_canvas(self.canvas)
@@ -113,37 +103,25 @@ class LetterMatch(activity.Activity):
                           parent=self)
 
     def _setup_toolbars(self):
-        ''' Setup the toolbars.. '''
+        ''' Just 0.86+ toolbars '''
+        self.max_participants = 1  # no sharing
 
-        # no sharing
-        self.max_participants = 1
+        toolbox = ToolbarBox()
 
-        if _HAVE_TOOLBOX:
-            toolbox = ToolbarBox()
+        activity_button = ActivityToolbarButton(self)
+        toolbox.toolbar.insert(activity_button, 0)
+        activity_button.show()
 
-            # Activity toolbar
-            activity_button = ActivityToolbarButton(self)
+        self.set_toolbar_box(toolbox)
+        toolbox.show()
+        primary_toolbar = toolbox.toolbar
+        custom_toolbar = ToolbarBox()
 
-            toolbox.toolbar.insert(activity_button, 0)
-            activity_button.show()
-
-            self.set_toolbar_box(toolbox)
-            toolbox.show()
-            primary_toolbar = toolbox.toolbar
-        else:
-            # Use pre-0.86 toolbar design
-            primary_toolbar = gtk.Toolbar()
-            toolbox = activity.ActivityToolbox(self)
-            self.set_toolbox(toolbox)
-            toolbox.add_toolbar(_('Page'), primary_toolbar)
-            toolbox.show()
-            toolbox.set_current_toolbar(1)
-
-            # no sharing
-            if hasattr(toolbox, 'share'):
-                toolbox.share.hide()
-            elif hasattr(toolbox, 'props'):
-                toolbox.props.visible = False
+        self.custom_toolbar_button = ToolbarButton(
+            icon_name='view-source', page=custom_toolbar)
+        self.custom_toolbar_button.connect(
+            'clicked', self._customization_toolbar_cb)
+        toolbox.toolbar.insert(self.custom_toolbar_button, -1)
 
         button = radio_factory('letter', primary_toolbar, self._letter_cb,
                                tooltip=_('listen to the letter names'))
@@ -155,48 +133,41 @@ class LetterMatch(activity.Activity):
 
         self.letter_entry = None
 
-        if _HAVE_TOOLBOX:
-            separator_factory(primary_toolbar, False, True)
+        self.image_button = button_factory('load_image_from_journal',
+                                           custom_toolbar.toolbar,
+                                           self._choose_image_from_journal_cb,
+                                           tooltip=_("Import Image"))
 
-            journal_toolbar = ToolbarBox()
+        self.sound_button = button_factory('load_audio_from_journal',
+                                           custom_toolbar.toolbar,
+                                           self._choose_audio_from_journal_cb,
+                                           tooltip=_("Import Audio"))
 
-            button_factory('load_image_from_journal', journal_toolbar.toolbar,
-                           self._choose_image_from_journal_cb,
-                           tooltip=_("Import Image"))
+        container = gtk.ToolItem()
+        self.letter_entry = gtk.Entry()
+        self.letter_entry.set_max_length(1)
+        self.letter_entry.set_width_chars(3)  # because 1 char looks funny
+        self.letter_entry.connect('changed', self._set_letter)
+        self.letter_entry.set_sensitive(False)
+        self.letter_entry.show()
+        container.add(self.letter_entry)
+        container.show_all()
+        custom_toolbar.toolbar.insert(container, -1)
 
-            button_factory('load_audio_from_journal', journal_toolbar.toolbar,
-                           self._choose_audio_from_journal_cb,
-                           tooltip=_("Import Audio"))
+        self.add_button = button_factory('list-add', custom_toolbar.toolbar,
+                                         self._copy_to_journal,
+                                         tooltip=_("Add"))
+        self.add_button.set_sensitive(False)
 
-            container = gtk.ToolItem()
-            self.letter_entry = gtk.Entry()
-            self.letter_entry.connect('changed', self._set_letter)
-            self.letter_entry.set_sensitive(False)
-            self.letter_entry.show()
-            container.add(self.letter_entry)
-            container.show_all()
-            journal_toolbar.toolbar.insert(container, -1)
+        separator_factory(primary_toolbar, True, False)
 
-            self.add_button = button_factory('add', journal_toolbar.toolbar,
-                                             self._copy_to_journal,
-                                             tooltip=_("Add"))
-            self.add_button.set_sensitive(False)
-
-            # Add journal toolbar
-            self.journal_toolbar_button = ToolbarButton(icon_name='view-source',
-                                                   page=journal_toolbar)
-            self.journal_toolbar_button.connect('clicked',
-                                                self._customization_toolbar_cb)
-            toolbox.toolbar.insert(self.journal_toolbar_button, -1)
-
-            separator_factory(primary_toolbar, True, False)
-
-            stop_button = StopButton(self)
-            stop_button.props.accelerator = '<Ctrl>q'
-            toolbox.toolbar.insert(stop_button, -1)
-            stop_button.show()
+        stop_button = StopButton(self)
+        stop_button.props.accelerator = '<Ctrl>q'
+        toolbox.toolbar.insert(stop_button, -1)
+        stop_button.show()
 
     def _set_letter(self, event):
+        ''' Process letter in text entry '''
         text = self.letter_entry.get_text().strip()
         if text and len(text) > 0:
             if len(text) != 1:
@@ -216,69 +187,80 @@ class LetterMatch(activity.Activity):
             self.add_button.set_sensitive(False)
 
     def _copy_to_journal(self, event):
+        ''' Callback from add button on customization toolbar '''
+        # Save data to journal and load it into the card database
         self.metadata['data_from_journal'] = json.dumps(self.data_from_journal)
         self._page.load_from_journal(self.data_from_journal)
+
+        # Reinit the preview, et al. after add
         self.preview_image.hide()
         self._init_preview()
         self.image_id = None
         self.object_id = None
-        self.add_button.set_sensitive(False)
         self.letter_entry.set_text('')
         self.letter_entry.set_sensitive(False)
+        self.add_button.set_sensitive(False)
 
     def _init_preview(self):
-            x = self._page._grid_x_offset + self._page._card_width + 12
-            y = self._page._grid_y_offset + 40
-            w = self._page._card_width
-            h = self._page._card_height
+        ''' Set up customization toolbar, preview image '''
+        w = int(self._page._card_width)
+        h = int(self._page._card_height)
+        x = int(self._page._grid_x_offset + w + 12)
+        y = int(self._page._grid_y_offset + 40)
 
-            pixbuf = gtk.gdk.pixbuf_new_from_file_at_size( \
-                        os.path.join(self._images_path,'../drawing.png'), int(w),
-                        int(h))
-            self.status.set_text(_('Please chose an image and ' \
-                                   'an audio clip from the journal'))
-            self._page._hide_cards()
-            
-            if not hasattr(self, 'preview_image'):
-                self.preview_image = Sprite(self._page._sprites, 0, 0, pixbuf)
-            else:
-                self.preview_image.set_image(pixbuf)
-            self.preview_image.move((x, y))
-            self.preview_image.set_layer(100)
-            self._page._canvas.disconnect(self._page.button_press_event_id)
-            self._page._canvas.disconnect(self._page.button_release_event_id)
-            self._page.button_press_event_id = \
-                self._page._canvas.connect('button-press-event',
-                                           self._keypress_preview)
-            self._page.button_release_event_id = \
-                self._page._canvas.connect('button-release-event', self._dummy)
-            self.is_customization_toolbar = True
+        pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(
+            os.path.join(self._images_path,'../drawing.png'), w, h)
+        self.status.set_text(
+            _('Please chose image and audio objects from the Journal.'))
+        self._page._hide_cards()
 
-    def _customization_toolbar_cb(self, event):
-        if not self.is_customization_toolbar_button:
-            self.is_customization_toolbar_button = True
+        if not hasattr(self, 'preview_image'):
+            self.preview_image = Sprite(self._page._sprites, 0, 0, pixbuf)
+        else:
+            self.preview_image.set_image(pixbuf)
+        self.preview_image.move((x, y))
+        self.preview_image.set_layer(100)
+        self._page._canvas.disconnect(self._page.button_press_event_id)
+        self._page._canvas.disconnect(self._page.button_release_event_id)
+        self._page.button_press_event_id = \
+            self._page._canvas.connect('button-press-event',
+                                       self._preview_press_cb)
+        self._page.button_release_event_id = \
+            self._page._canvas.connect('button-release-event',
+                                       self._dummy_cb)
+
+    def _customization_toolbar_cb(self, event):        
+        ''' Override toolbar button behavior '''
+        if self.custom_toolbar_button.is_expanded():
             self._init_preview()
         else:
-            self.is_customization_toolbar_button = False
-            if hasattr(self, 'preview_image'):
-                self.preview_image.hide()
+            if self.mode == 'letter':
+                self._letter_cb()
+            else:
+                self._picture_cb()
 
-    def _keypress_preview(self, win, event):
+    def _preview_press_cb(self, win, event):
+        ''' Preview image was clicked '''
         self._choose_image_from_journal_cb(None)
 
-    def _dummy(self, win, event):
+    def _dummy_cb(self, win, event):
         '''Does nothing'''
         return True
 
     def _choose_audio_from_journal_cb(self, event):
+        ''' Create a chooser for audio objects '''
         self.add_button.set_sensitive(False)
         self.letter_entry.set_sensitive(False)
+        self.image_button.set_sensitive(False)
+        self.sound_button.set_sensitive(False)
         self.audio_id = None
         chooser = ObjectChooser(what_filter=mime.GENERIC_TYPE_AUDIO)
         result = chooser.run()
         if result == gtk.RESPONSE_ACCEPT:
             jobject = chooser.get_selected_object()
             self.audio_id = str(jobject._object_id)
+        self.image_button.set_sensitive(True)
+        self.sound_button.set_sensitive(True)
         if self.image_id and self.audio_id:
             self.letter_entry.set_sensitive(True)
             self._page._canvas.disconnect(self._page.button_press_event_id)
@@ -287,12 +269,16 @@ class LetterMatch(activity.Activity):
                                            self._play_audio_cb)
 
     def _play_audio_cb(self, win, event):
+        ''' Preview audio '''
         if self.audio_id:
             play_audio_from_file(datastore.get(self.audio_id).get_file_path())
 
     def _choose_image_from_journal_cb(self, event):
+        ''' Create a chooser for image objects '''
         self.add_button.set_sensitive(False)
         self.letter_entry.set_sensitive(False)
+        self.image_button.set_sensitive(False)
+        self.sound_button.set_sensitive(False)
         self.image_id = None
         chooser = ObjectChooser(what_filter=mime.GENERIC_TYPE_IMAGE)
         result = chooser.run()
@@ -305,12 +291,13 @@ class LetterMatch(activity.Activity):
             w = self._page._card_width
             h = self._page._card_height
 
-            pb = gtk.gdk.pixbuf_new_from_file_at_size(jobject.get_file_path(),
-                                                      w, h)
-            self.preview_image.hide()            
-            self.preview_image.set_image(pb)
+            pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(
+                jobject.get_file_path(), w, h)
+            self.preview_image.set_image(pixbuf)
             self.preview_image.move((x, y))
             self.preview_image.set_layer(100)
+        self.image_button.set_sensitive(True)
+        self.sound_button.set_sensitive(True)
         if self.image_id and self.audio_id:
             self.letter_entry.set_sensitive(True)
             self._page._canvas.disconnect(self._page.button_press_event_id)
@@ -319,23 +306,23 @@ class LetterMatch(activity.Activity):
                                            self._play_audio_cb)
 
     def _cleanup_preview(self):
-        self.preview_image.hide()
+        ''' No longer previewing, so hide image and clean up callbacks '''
+        if hasattr(self, 'preview_image'):
+            self.preview_image.hide()
         self._page._canvas.disconnect(self._page.button_press_event_id)
         self._page._canvas.disconnect(self._page.button_release_event_id)
-        self._page.button_release_event_id = \
-            self._canvas.connect("button-release-event",
-                                  self._page._button_release_cb)
         self._page.button_press_event_id = \
                 self._canvas.connect("button-press-event",
                                      self._page._button_press_cb)
-        self._page.new_page()
-        self.is_customization_toolbar = False
+        self._page.button_release_event_id = \
+            self._canvas.connect("button-release-event",
+                                  self._page._button_release_cb)
 
     def _letter_cb(self, event=None):
-        ''' click on card to hear the letter name '''
-        if self.is_customization_toolbar:
-            self._cleanup_preview()
-
+        ''' Click on card to hear the letter name '''
+        if self.custom_toolbar_button.is_expanded():
+            self.custom_toolbar_button.set_expanded(False)
+        self._cleanup_preview()
         self.mode = 'letter'
         self.status.set_text(_('Click on the picture that matches the letter.'))
         if hasattr(self, '_page'):
@@ -343,11 +330,10 @@ class LetterMatch(activity.Activity):
         return
 
     def _picture_cb(self, event=None):
-        ''' click on card to hear the letter name '''
-        if self.is_customization_toolbar:
-            self._cleanup_preview()
-            self.is_customization_toolbar = False
-
+        ''' Click on card to hear the letter name '''
+        if self.custom_toolbar_button.is_expanded():
+            self.custom_toolbar_button.set_expanded(False)
+        self._cleanup_preview()
         self.mode = 'picture'
         self.status.set_text(_('Click on the letter that matches the picture.'))
         if hasattr(self, '_page'):

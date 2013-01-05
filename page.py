@@ -78,14 +78,13 @@ class Page():
         self._canvas.connect("key_press_event", self._keypress_cb)
         self._width = gtk.gdk.screen_width()
         self._height = gtk.gdk.screen_height()
-        self._card_width = int((self._width / XDIM)) - GUTTER * 2
         self._card_height = int((self._height - GRID_CELL_SIZE) / YDIM) \
             - GUTTER * 2
+        self._card_width = int(self._card_height * 4 / 3.)
         self._grid_x_offset = int(
             (self._width - XDIM * (self._card_width + GUTTER * 2)) / 2)
         self._grid_y_offset = 0
-        # self._scale = self._width / 240.
-        self._scale = self._card_width / 80
+        self._scale = self._card_width / 80.
         self._sprites = Sprites(self._canvas)
         self.current_card = 0
         self._cards = []
