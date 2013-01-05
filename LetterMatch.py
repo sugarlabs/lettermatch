@@ -239,7 +239,10 @@ class LetterMatch(activity.Activity):
                                    'an audio clip from the journal'))
             self._page._hide_cards()
             
-            self.preview_image = Sprite(self._page._sprites, 0, 0, pixbuf)
+            if not hasattr(self, 'preview_image'):
+                self.preview_image = Sprite(self._page._sprites, 0, 0, pixbuf)
+            else:
+                self.preview_image.set_image(pixbuf)
             self.preview_image.move((x, y))
             self.preview_image.set_layer(100)
             self._page._canvas.disconnect(self._page.button_press_event_id)
@@ -257,6 +260,8 @@ class LetterMatch(activity.Activity):
             self._init_preview()
         else:
             self.is_customization_toolbar_button = False
+            if hasattr(self, 'preview_image'):
+                self.preview_image.hide()
 
     def _keypress_preview(self, win, event):
         self._choose_image_from_journal_cb(None)
@@ -303,7 +308,7 @@ class LetterMatch(activity.Activity):
             pb = gtk.gdk.pixbuf_new_from_file_at_size(jobject.get_file_path(),
                                                       w, h)
             self.preview_image.hide()            
-            self.preview_image = Sprite(self._page._sprites, 0, 0, pb)
+            self.preview_image.set_image(pb)
             self.preview_image.move((x, y))
             self.preview_image.set_layer(100)
         if self.image_id and self.audio_id:
