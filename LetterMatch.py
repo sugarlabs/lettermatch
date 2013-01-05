@@ -211,7 +211,7 @@ class LetterMatch(activity.Activity):
         pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(
             os.path.join(self._images_path,'../drawing.png'), w, h)
         self.status.set_text(
-            _('Please chose image and audio objects from the Journal.'))
+            _('Please choose image and audio objects from the Journal.'))
         self._page._hide_cards()
 
         if not hasattr(self, 'preview_image'):
