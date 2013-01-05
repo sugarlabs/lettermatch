@@ -34,7 +34,6 @@ from sugar import profile
 from sugar.graphics.objectchooser import ObjectChooser
 from sugar import mime
 from utils.sprites import Sprites, Sprite
-from utils.play_audio import play_audio_from_file
 
 from gettext import gettext as _
 import os.path
