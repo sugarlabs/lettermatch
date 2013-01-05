@@ -218,6 +218,7 @@ class LetterMatch(activity.Activity):
     def _copy_to_journal(self, event):
         self.metadata['data_from_journal'] = json.dumps(self.data_from_journal)
         self._page.load_from_journal(self.data_from_journal)
+        self.preview_image.hide()
         self._init_preview()
         self.image_id = None
         self.object_id = None
