@@ -273,12 +273,12 @@ class LetterMatch(activity.Activity):
         if result == gtk.RESPONSE_ACCEPT:
             jobject = chooser.get_selected_object()
             self.audio_id = str(jobject._object_id)
+        if self.image_id and self.audio_id:
+            self.letter_entry.set_sensitive(True)
             self._page._canvas.disconnect(self._page.button_press_event_id)
             self._page.button_press_event_id = \
                 self._page._canvas.connect('button-press-event',
                                            self._play_audio_cb)
-        if self.image_id and self.audio_id:
-            self.letter_entry.set_sensitive(True)
 
     def _play_audio_cb(self, win, event):
         if self.audio_id:
@@ -307,6 +307,10 @@ class LetterMatch(activity.Activity):
             self.preview_image.set_layer(100)
         if self.image_id and self.audio_id:
             self.letter_entry.set_sensitive(True)
+            self._page._canvas.disconnect(self._page.button_press_event_id)
+            self._page.button_press_event_id = \
+                self._page._canvas.connect('button-press-event',
+                                           self._play_audio_cb)
 
     def _cleanup_preview(self):
         self.preview_image.hide()
