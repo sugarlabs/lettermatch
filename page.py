@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2012 Walter Bender
+# Copyright (c) 2012 Walter Bender <walter.bender@gmail.com>
 # Copyright (c) 2013 Aneesh Dogra <lionaneesh@gmail.com>
+# Copyright (c) 2013 Ignacio Rodríguez <ignacio@sugarlabs.org>
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3 of the License, or
@@ -11,25 +12,22 @@
 # Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 # Boston, MA 02111-1307, USA.
 
-import gtk
-import gobject
+
+from gi.repository import Gtk, Gdk, GObject, GdkPixbuf
 import os
 import codecs
 from random import uniform, choice
 
 from gettext import gettext as _
 
-from sugar.datastore import datastore
+from sugar3.datastore import datastore
 from utils.play_audio import play_audio_from_file
 
 import logging
 _logger = logging.getLogger('lettermatch-activity')
 
-try:
-    from sugar.graphics import style
-    GRID_CELL_SIZE = style.GRID_CELL_SIZE
-except ImportError:
-    GRID_CELL_SIZE = 0
+from sugar3.graphics import style
+GRID_CELL_SIZE = style.GRID_CELL_SIZE
 
 from genpieces import generate_card
 from utils.sprites import Sprites, Sprite
@@ -66,18 +64,17 @@ class Page():
             self._canvas = canvas
             self._activity.show_all()
 
-        self._canvas.set_flags(gtk.CAN_FOCUS)
-        self._canvas.add_events(gtk.gdk.BUTTON_PRESS_MASK)
-        self._canvas.add_events(gtk.gdk.BUTTON_RELEASE_MASK)
-        self._canvas.connect("expose-event", self._expose_cb)
+        self._canvas.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
+        self._canvas.add_events(Gdk.EventMask.BUTTON_RELEASE_MASK)
+        self._canvas.connect("draw", self.__draw_cb)
         self.button_release_event_id = \
           self._canvas.connect("button-release-event", self._button_release_cb)
         self.button_press_event_id = \
           self._canvas.connect("button-press-event", self._button_press_cb)
                 
         self._canvas.connect("key_press_event", self._keypress_cb)
-        self._width = gtk.gdk.screen_width()
-        self._height = gtk.gdk.screen_height()
+        self._width = Gdk.Screen.width()
+        self._height = Gdk.Screen.height()
         self._card_height = int((self._height - GRID_CELL_SIZE) / YDIM) \
             - GUTTER * 2
         self._card_width = int(self._card_height * 4 / 3.)
@@ -106,7 +103,7 @@ class Page():
     def new_page(self):
         ''' Load a page of cards '''
         if self.timeout is not None:
-            gobject.source_remove(self.timeout)
+            GObject.source_remove(self.timeout)
         self._hide_cards()
         self.new_target()
         x = self._grid_x_offset + self._card_width + GUTTER * 3
@@ -173,7 +170,7 @@ class Page():
                 h2 = 1.0 - h1
                 bot.composite(top, 0, int(h1 * top.get_height()),
                               top.get_width(), int(h2 * top.get_height()),
-                              0, 0, 1, 1, gtk.gdk.INTERP_NEAREST, 255)
+                              0, 0, 1, 1, GdkPixbuf.InterpType.NEAREST, 255)
                 self._cards.append(Sprite(self._sprites, 0, 0, top))
             else:
                 stroke = self._test_for_stroke()
@@ -207,8 +204,8 @@ class Page():
         self.answers[i] = self.target
 
         if self.timeout is not None:
-            gobject.source_remove(self.timeout)
-        self.timeout = gobject.timeout_add(1000, self._play_target_sound)
+            GObject.source_remove(self.timeout)
+        self.timeout = GObject.timeout_add(1000, self._play_target_sound)
 
     def _bad_answer(self, i):
         ''' Make sure answer is unique '''
@@ -275,18 +272,29 @@ class Page():
 
         if self.current_card == self.target:
             self._activity.status.set_text(_('Very good!'))
+            self._play(True)
             if self.timeout is not None:
-                gobject.source_remove(self.timeout)
-            self.timeout = gobject.timeout_add(1000, self.new_page)
+                GObject.source_remove(self.timeout)
+            self.timeout = GObject.timeout_add(1000, self.new_page)
         else:
             self._activity.status.set_text(_('Please try again.'))
+            self._play(False)
             self._play_target_sound()
-
+            
+    def _play(self, great):
+        if great:
+                play_audio_from_file(os.getcwd() + '/sounds/great.ogg')
+        else:
+                play_audio_from_file(os.getcwd() + '/sounds/bad.ogg')
+                
     def _keypress_cb(self, area, event):
         ''' No keyboard shortcuts at the moment. Perhaps jump to the page
         associated with the key pressed? '''
         return True
-
+        
+    def __draw_cb(self, canvas, cr):
+        self._sprites.redraw_sprites(cr=cr)
+        
     def _expose_cb(self, win, event):
         ''' Callback to handle window expose events '''
         self.do_expose_event(event)
@@ -308,12 +316,16 @@ class Page():
 
     def _destroy_cb(self, win, event):
         ''' Make a clean exit. '''
-        gtk.main_quit()
+        Gtk.main_quit()
 
     def invalt(self, x, y, w, h):
         ''' Mark a region for refresh '''
-        self._canvas.window.invalidate_rect(
-            gtk.gdk.Rectangle(int(x), int(y), int(w), int(h)), False)
+        rectangle = Gdk.Rectangle()
+        rectangle.x = x
+        rectangle.y = y
+        rectangle.width = w
+        rectangle.height = h
+        self._canvas.window.invalidate_rect(rectangle)
 
     def load_level(self, path):
         ''' Load a level (CSV) from path: letter, word, color, image,
@@ -371,14 +383,14 @@ class Page():
 
 def svg_str_to_pixbuf(svg_string):
     ''' Load pixbuf from SVG string. '''
-    pl = gtk.gdk.PixbufLoader('svg')
+    pl = GdkPixbuf.PixbufLoader.new_with_type('svg')
+    if type(svg_string) == unicode:
+        svg_string = svg_string.encode('ascii', 'replace')
     pl.write(svg_string)
     pl.close()
-    pixbuf = pl.get_pixbuf()
-    return pixbuf
+    return pl.get_pixbuf()
 
 
 def image_file_to_pixbuf(file_path, w, h):
     ''' Load pixbuf from file '''
-    return gtk.gdk.pixbuf_new_from_file_at_size(file_path, int(w), int(h))
-        
+    return GdkPixbuf.Pixbuf.new_from_file_at_size(file_path, int(w), int(h))

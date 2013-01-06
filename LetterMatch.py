@@ -1,5 +1,7 @@
+# -*- coding: utf-8 -*-
 # Copyright (c) 2012, 2013 Walter Bender
 # Copyright (c) 2013 Aneesh Dogra <lionaneesh@gmail.com>
+# Copyright (c) 2013 Ignacio Rodríguez <ignacio@sugarlabs.org>
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -12,19 +14,19 @@
 # Boston, MA 02111-1307, USA.
 
 
-import gtk
+from gi.repository import Gtk, Gdk, GdkPixbuf
 
-from sugar.activity import activity
-from sugar.graphics.toolbarbox import ToolbarBox, ToolbarButton
-from sugar.activity.widgets import ActivityToolbarButton
-from sugar.activity.widgets import StopButton
-from sugar.graphics.toolbutton import ToolButton
-from sugar.graphics.combobox import ComboBox
-from sugar.graphics.toolcombobox import ToolComboBox
-from sugar.datastore import datastore
-from sugar import profile
-from sugar.graphics.objectchooser import ObjectChooser
-from sugar import mime
+from sugar3.activity import activity
+from sugar3.graphics.toolbarbox import ToolbarBox, ToolbarButton
+from sugar3.activity.widgets import ActivityToolbarButton
+from sugar3.activity.widgets import StopButton
+from sugar3.graphics.toolbutton import ToolButton
+from sugar3.graphics.combobox import ComboBox
+from sugar3.graphics.toolcombobox import ToolComboBox
+from sugar3.datastore import datastore
+from sugar3 import profile
+from sugar3.graphics.objectchooser import ObjectChooser
+from sugar3 import mime
 from utils.sprites import Sprites, Sprite
 
 from gettext import gettext as _
@@ -89,10 +91,10 @@ class LetterMatch(activity.Activity):
                 str(self.metadata['data_from_journal']))
         self._setup_toolbars()
 
-        self.canvas = gtk.DrawingArea()
-        self.canvas.set_size_request(gtk.gdk.screen_width(),
-                                     gtk.gdk.screen_height())
-        self.canvas.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("#000000"))
+        self.canvas = Gtk.DrawingArea()
+        self.canvas.set_size_request(Gdk.Screen.width(),
+                                     Gdk.Screen.height())
+        self.canvas.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse("#000000"))
         self.canvas.show()
         self.set_canvas(self.canvas)
 
@@ -103,7 +105,6 @@ class LetterMatch(activity.Activity):
                           parent=self)
 
     def _setup_toolbars(self):
-        ''' Just 0.86+ toolbars '''
         self.max_participants = 1  # no sharing
 
         toolbox = ToolbarBox()
@@ -111,6 +112,9 @@ class LetterMatch(activity.Activity):
         activity_button = ActivityToolbarButton(self)
         toolbox.toolbar.insert(activity_button, 0)
         activity_button.show()
+
+        separator = Gtk.SeparatorToolItem()
+        toolbox.toolbar.insert(separator, -1)
 
         self.set_toolbar_box(toolbox)
         toolbox.show()
@@ -143,8 +147,8 @@ class LetterMatch(activity.Activity):
                                            self._choose_audio_from_journal_cb,
                                            tooltip=_("Import Audio"))
 
-        container = gtk.ToolItem()
-        self.letter_entry = gtk.Entry()
+        container = Gtk.ToolItem()
+        self.letter_entry = Gtk.Entry()
         self.letter_entry.set_max_length(1)
         self.letter_entry.set_width_chars(3)  # because 1 char looks funny
         self.letter_entry.connect('changed', self._set_letter)
@@ -208,7 +212,7 @@ class LetterMatch(activity.Activity):
         x = int(self._page._grid_x_offset + w + 12)
         y = int(self._page._grid_y_offset + 40)
 
-        pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(
+        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(
             os.path.join(self._images_path,'../drawing.png'), w, h)
         self.status.set_text(
             _('Please choose image and audio objects from the Journal.'))
@@ -256,7 +260,7 @@ class LetterMatch(activity.Activity):
         self.audio_id = None
         chooser = ObjectChooser(what_filter=mime.GENERIC_TYPE_AUDIO)
         result = chooser.run()
-        if result == gtk.RESPONSE_ACCEPT:
+        if result == Gtk.ResponseType.ACCEPT:
             jobject = chooser.get_selected_object()
             self.audio_id = str(jobject._object_id)
         self.image_button.set_sensitive(True)
@@ -282,7 +286,7 @@ class LetterMatch(activity.Activity):
         self.image_id = None
         chooser = ObjectChooser(what_filter=mime.GENERIC_TYPE_IMAGE)
         result = chooser.run()
-        if result == gtk.RESPONSE_ACCEPT:
+        if result == Gtk.ResponseType.ACCEPT:
             jobject = chooser.get_selected_object()
             self.image_id = str(jobject._object_id)
 
@@ -291,7 +295,7 @@ class LetterMatch(activity.Activity):
             w = self._page._card_width
             h = self._page._card_height
 
-            pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(
+            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(
                 jobject.get_file_path(), w, h)
             self.preview_image.set_image(pixbuf)
             self.preview_image.move((x, y))
