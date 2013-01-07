@@ -205,7 +205,8 @@ class Page():
 
         if self.timeout is not None:
             GObject.source_remove(self.timeout)
-        self.timeout = GObject.timeout_add(1000, self._play_target_sound)
+        self.timeout = GObject.timeout_add(
+            1000, self._play_target_sound, False)
 
     def _bad_answer(self, i):
         ''' Make sure answer is unique '''
@@ -218,11 +219,11 @@ class Page():
                 return True
         return False
 
-    def _play_target_sound(self):
+    def _play_target_sound(self, queue=True):
         if self._activity.mode == 'letter':
-            play_audio_from_file(self._card_data[self.target][-1])
+            play_audio_from_file(self._card_data[self.target][-1], queue)
         else:
-            play_audio_from_file(self.chosen_image[-1])
+            play_audio_from_file(self.chosen_image[-1], queue)
         self.timeout = None
 
     def _button_press_cb(self, win, event):
