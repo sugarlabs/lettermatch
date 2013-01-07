@@ -334,7 +334,7 @@ class Page():
         self._color_data = [] 
         self._image_data = {} # {letter: [(Sprite, image_sound_path)...]}
         self._pictures = []
-        f = codecs.open(path, encoding='utf-8')
+        f = open(path)
         for line in f:
             if len(line) > 0 and line[0] not in '#\n':
                 words = line.split(', ')
@@ -384,8 +384,6 @@ class Page():
 def svg_str_to_pixbuf(svg_string):
     ''' Load pixbuf from SVG string. '''
     pl = GdkPixbuf.PixbufLoader.new_with_type('svg')
-    if type(svg_string) == unicode:
-        svg_string = svg_string.encode('ascii', 'replace')
     pl.write(svg_string)
     pl.close()
     return pl.get_pixbuf()
