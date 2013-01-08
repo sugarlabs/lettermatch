@@ -67,11 +67,9 @@ def play_audio_from_file(file_path, queue=False):
     else:
         Gst.init(None)
 
-    _logger.debug("filesrc location=%s ! decodebin !" \
-                                    " autoaudiosink" % (file_path,))
-    play_audio_from_file.player = Gst.parse_launch ( \
-                                    "filesrc location=%s ! decodebin !" \
-                                    " autoaudiosink" % (file_path,))
+    play_audio_from_file.player = Gst.parse_launch (
+                    'filesrc location=%s ! oggdemux ! vorbisdec ! ' \
+                    'audioconvert ! alsasink' % (file_path))
 
     if not play_audio_from_file.player:
         _logger.warning('unable to play audio file %s' % (file_path))
