@@ -186,13 +186,13 @@ class Page():
             if type(self._color_data[self.current_card][0]) == type([]):
                 stroke = self._test_for_stroke()
                 top = svg_str_to_pixbuf(generate_card(
-                        string=card[0].lower(),
+                        string=card[0],
                         colors=[self._color_data[self.current_card][0][0],
                                 '#FFFFFF'],
                         scale=self._scale,
                         center=True))
                 bot = svg_str_to_pixbuf(generate_card(
-                        string=card[0].lower(),
+                        string=card[0],
                         colors=[self._color_data[self.current_card][0][1],
                                 '#FFFFFF'],
                         scale=self._scale,
@@ -208,7 +208,8 @@ class Page():
                 stroke = self._test_for_stroke()
                 self._cards.append(Sprite(self._sprites, 0, 0,
                                           svg_str_to_pixbuf(generate_card(
-                                string=card[0].lower(),
+                                string='%s%s' % (
+                                    card[0].upper(), card[0].lower()),
                                 colors=[self._color_data[self.current_card][0],
                                         '#FFFFFF'],
                                 stroke=stroke,
