@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2012 Walter Bender <walter.bender@gmail.com>
+# Copyright (c) 2012,13 Walter Bender <walter.bender@gmail.com>
 # Copyright (c) 2013 Aneesh Dogra <lionaneesh@gmail.com>
 # Copyright (c) 2013 Ignacio Rodríguez <ignacio@sugarlabs.org>
 # This program is free software; you can redistribute it and/or modify
@@ -15,7 +15,6 @@
 
 from gi.repository import Gtk, Gdk, GObject, GdkPixbuf
 import os
-import codecs
 from random import uniform, choice
 
 from gettext import gettext as _
@@ -26,10 +25,11 @@ from utils.play_audio import play_audio_from_file
 import logging
 _logger = logging.getLogger('lettermatch-activity')
 
+from sugar3 import profile
 from sugar3.graphics import style
 GRID_CELL_SIZE = style.GRID_CELL_SIZE
 
-from genpieces import generate_card
+from genpieces import generate_card, genblank
 from utils.sprites import Sprites, Sprite
 
 
@@ -48,6 +48,8 @@ class Page():
         self._lessons_path = lessons_path
         self._images_path = images_path
         self._sounds_path = sounds_path
+
+        self._colors = profile.get_color().to_string().split(',')
 
         self._card_data = []
         self._color_data = []
@@ -92,6 +94,30 @@ class Page():
         self.target = 0
         self.answers = [0, 0, 0, 0, 0, 0]
 
+        self._my_canvas = Sprite(
+            self._sprites, 0, 0, svg_str_to_pixbuf(genblank(
+                    self._width, self._height, (self._colors[0],
+                                                self._colors[0]))))
+        self._my_canvas.type = 'background'
+
+        self._smile = Sprite(self._sprites,
+                             int(self._width / 4),
+                             int(self._height / 4),
+                             GdkPixbuf.Pixbuf.new_from_file_at_size(
+                os.path.join(self._activity.activity_path,
+                             'images', 'correct.png'),
+                int(self._width / 2),
+                int(self._height / 2)))
+
+        self._frown = Sprite(self._sprites,
+                             int(self._width / 4),
+                             int(self._height / 4),
+                             GdkPixbuf.Pixbuf.new_from_file_at_size(
+                os.path.join(self._activity.activity_path,
+                             'images', 'wrong.png'),
+                int(self._width / 2),
+                int(self._height / 2)))
+
         self.load_level(os.path.join(self._lessons_path, 'alphabet' + '.csv'))
 
         # Create the cards we'll need
@@ -100,11 +126,17 @@ class Page():
 
         self.new_page()
 
+    def _hide_feedback(self):
+        if hasattr(self, '_smile'):
+            self._smile.hide()
+            self._frown.hide()
+
     def new_page(self):
         ''' Load a page of cards '''
         if self.timeout is not None:
             GObject.source_remove(self.timeout)
         self._hide_cards()
+        self._hide_feedback()
         self.new_target()
         x = self._grid_x_offset + self._card_width + GUTTER * 3
         y = self._grid_y_offset + GUTTER
@@ -281,12 +313,15 @@ class Page():
             self._activity.status.set_text(_('Please try again.'))
             self._play(False)
             self._play_target_sound()
+            self.timeout = GObject.timeout_add(1000, self._hide_feedback)
             
     def _play(self, great):
         if great:
-                play_audio_from_file(os.getcwd() + '/sounds/great.ogg')
+            self._smile.set_layer(1000)
+            # play_audio_from_file(os.getcwd() + '/sounds/great.ogg')
         else:
-                play_audio_from_file(os.getcwd() + '/sounds/bad.ogg')
+            self._frown.set_layer(1000)
+            # play_audio_from_file(os.getcwd() + '/sounds/bad.ogg')
                 
     def _keypress_cb(self, area, event):
         ''' No keyboard shortcuts at the moment. Perhaps jump to the page

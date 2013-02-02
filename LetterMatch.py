@@ -16,17 +16,14 @@
 
 from gi.repository import Gtk, Gdk, GdkPixbuf
 
+from sugar3.datastore import datastore
+from sugar3.graphics.objectchooser import ObjectChooser
+from sugar3 import mime
 from sugar3.activity import activity
 from sugar3.graphics.toolbarbox import ToolbarBox, ToolbarButton
 from sugar3.activity.widgets import ActivityToolbarButton
 from sugar3.activity.widgets import StopButton
 from sugar3.graphics.toolbutton import ToolButton
-from sugar3.graphics.combobox import ComboBox
-from sugar3.graphics.toolcombobox import ToolComboBox
-from sugar3.datastore import datastore
-from sugar3 import profile
-from sugar3.graphics.objectchooser import ObjectChooser
-from sugar3 import mime
 from utils.sprites import Sprites, Sprite
 
 from gettext import gettext as _
@@ -75,16 +72,13 @@ class LetterMatch(activity.Activity):
         language = 'es'
         self.letter = None
 
-        if os.path.exists(os.path.join('~', 'Activities',
-                                       'IKnowMyABCs.activity')):
-            self._lessons_path = os.path.join('~', 'Activities',
-                                              'IKnowMyABCs.activity',
-                                              'lessons', language)
-        else:
-            self._lessons_path = os.path.join('.', 'lessons', language)
-
-        self._images_path = self._lessons_path.replace('lessons', 'images')
-        self._sounds_path = self._lessons_path.replace('lessons', 'sounds')
+        self.activity_path = activity.get_bundle_path()
+        self._lessons_path = os.path.join(self.activity_path,
+                                          'lessons', language)
+        self._images_path = os.path.join(self.activity_path,
+                                          'images', language)
+        self._sounds_path = os.path.join(self.activity_path,
+                                          'sounds', language)
         self.data_from_journal = {}
         if 'data_from_journal' in self.metadata:
             self.data_from_journal = json.loads(

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-#Copyright (c) 2009-11 Walter Bender
+#Copyright (c) 2009-13 Walter Bender
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -144,6 +144,16 @@ def generator(datapath):
     f = open_file(datapath, filename)
     f.write(generate_card(string='b', background=False))
     close_file(f)
+
+
+def genblank(w, h, colors, stroke_width=1.0):
+    svg = SVG()
+    svg.set_scale(1)
+    svg.set_colors(colors)
+    svg.set_stroke_width(stroke_width)
+    svg_string = svg.header(int(w / 80), int(h / 60))
+    svg_string += svg.footer()
+    return svg_string
 
 
 def main():
