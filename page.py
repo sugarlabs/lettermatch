@@ -92,7 +92,7 @@ class Page():
         self._release = None
         self.timeout = None
         self.target = 0
-        self.answers = [0, 0, 0, 0, 0, 0]
+        self.answers = []
 
         self._my_canvas = Sprite(
             self._sprites, 0, 0, svg_str_to_pixbuf(genblank(
@@ -135,6 +135,9 @@ class Page():
         ''' Load a page of cards '''
         if self.timeout is not None:
             GObject.source_remove(self.timeout)
+        self.answers = []
+        for i in range(min(6, len(self._cards))):
+            self.answers.append(0)
         self._hide_cards()
         self._hide_feedback()
         self.new_target()
@@ -227,13 +230,14 @@ class Page():
         self._activity.status.set_text(
             _('Click on the card that corresponds to the sound.'))
         self.target = int(uniform(0, len(self._cards)))
-
-        for i in range(6):
-            self.answers[i] = self.target
-        for i in range(6):
+        for i in range(min(6, len(self._cards))):
+            self.answers[i] = int(uniform(0, len(self._cards)))
+        for i in range(min(6, len(self._cards))):
             while self._bad_answer(i):
-                self.answers[i] = int(uniform(0, len(self._cards)))
-        i = int(uniform(0, 6))
+                self.answers[i] += 1
+                self.answers[i] %= len(self._cards)
+        # Choose a random card and assign it to the target
+        i = int(uniform(0, min(6, len(self._cards))))
         self.answers[i] = self.target
 
         if self.timeout is not None:
@@ -243,9 +247,10 @@ class Page():
 
     def _bad_answer(self, i):
         ''' Make sure answer is unique '''
+        _logger.debug('bad answer %d' % (i))
         if self.answers[i] == self.target:
             return True
-        for j in range(6):
+        for j in range(min(6, len(self._cards))):
             if i == j:
                 continue
             if self.answers[i] == self.answers[j]:
