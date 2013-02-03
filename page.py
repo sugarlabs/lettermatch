@@ -247,7 +247,6 @@ class Page():
 
     def _bad_answer(self, i):
         ''' Make sure answer is unique '''
-        _logger.debug('bad answer %d' % (i))
         if self.answers[i] == self.target:
             return True
         for j in range(min(6, len(self._cards))):
