@@ -209,8 +209,18 @@ class Page():
                 self._cards.append(Sprite(self._sprites, 0, 0, top))
             else:
                 stroke = self._test_for_stroke()
-                self._cards.append(Sprite(self._sprites, 0, 0,
+                if card[0] == 'ch':
+                    self._cards.append(Sprite(self._sprites, 0, 0,
                                           svg_str_to_pixbuf(generate_card(
+                                string='%s' % (
+                                    card[0].lower()),
+                                colors=[self._color_data[self.current_card][0],
+                                        '#FFFFFF'],
+                                stroke=stroke,
+                                scale=self._scale, center=True))))
+                else:
+                    self._cards.append(Sprite(self._sprites, 0, 0,
+                                              svg_str_to_pixbuf(generate_card(
                                 string='%s%s' % (
                                     card[0].upper(), card[0].lower()),
                                 colors=[self._color_data[self.current_card][0],
@@ -226,7 +236,7 @@ class Page():
             return False
 
     def new_target(self):
-        ''' Generate a new target and answer list '''
+bb        ''' Generate a new target and answer list '''
         self._activity.status.set_text(
             _('Click on the card that corresponds to the sound.'))
         self.target = int(uniform(0, len(self._cards)))
