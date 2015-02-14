@@ -236,7 +236,7 @@ class Page():
             return False
 
     def new_target(self):
-bb        ''' Generate a new target and answer list '''
+        ''' Generate a new target and answer list '''
         self._activity.status.set_text(
             _('Click on the card that corresponds to the sound.'))
         self.target = int(uniform(0, len(self._cards)))

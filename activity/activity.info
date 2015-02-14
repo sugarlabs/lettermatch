@@ -7,3 +7,4 @@ exec = sugar-activity LetterMatch.LetterMatch
 icon = activity-lettermatch
 show_launcher = yes
 summary = alphabet flashcards
+category = language
