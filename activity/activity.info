@@ -7,4 +7,6 @@ exec = sugar-activity LetterMatch.LetterMatch
 icon = activity-lettermatch
 show_launcher = yes
 summary = alphabet flashcards
-category = language
+tags = language
+repository = https://github.com/sugarlabs/lettermatch/
+url = https://help.sugarlabs.org/en/lettermatch.html
