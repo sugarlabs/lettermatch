@@ -77,6 +77,10 @@ def svg_str_to_pixbuf(svg_string):
 '''
 
 import gi
+
+gi.require_version('Gtk', '3.0')
+
+gi.require_version('PangoCairo', '1.0')
 from gi.repository import Gtk, GdkPixbuf, Gdk
 from gi.repository import Pango, PangoCairo
 
@@ -451,5 +455,5 @@ class Sprite:
             else:
                 return(-1, -1, -1, -1)
         except IndexError:
-            print("Index Error: %d %d" % (len(array), offset))
+            print("Index Error: {}{}".format(len(array), offset))
             return(-1, -1, -1, -1)
