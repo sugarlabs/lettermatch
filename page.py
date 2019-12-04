@@ -250,7 +250,8 @@ class Page():
         self.answers[i] = self.target
 
         if self.timeout is not None:
-            GObject.source_remove(self.timeout)
+            if self.timeout:
+                GObject.source_remove(self.timeout)
         self.timeout = GObject.timeout_add(
             1000, self._play_target_sound, False)
 
