@@ -276,7 +276,7 @@ class Page():
     def _button_press_cb(self, win, event):
         ''' Either a card or list entry was pressed. '''
         win.grab_focus()
-        x, y = map(int, event.get_coords())
+        x, y = list(map(int, event.get_coords()))
 
         spr = self._sprites.find_sprite((x, y))
         self._press = spr
@@ -287,7 +287,7 @@ class Page():
         ''' Play a sound or video or jump to a card as indexed in the list. '''
         win.grab_focus()
 
-        x, y = map(int, event.get_coords())
+        x, y = list(map(int, event.get_coords()))
         spr = self._sprites.find_sprite((x, y))
 
         self.current_card = -1
