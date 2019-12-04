@@ -77,7 +77,9 @@ def svg_str_to_pixbuf(svg_string):
 '''
 
 import gi
-from gi.repository import Gtk, GdkPixbuf, Gdk
+
+gi.require_version('PangoCairo', '1.0')
+from gi.repository import GdkPixbuf, Gdk
 from gi.repository import Pango, PangoCairo
 
 
