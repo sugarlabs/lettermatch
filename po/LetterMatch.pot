@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-01-05 14:24-0500\n"
+"POT-Creation-Date: 2019-12-05 17:10+1100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,42 +21,46 @@ msgstr ""
 msgid "Letter Match"
 msgstr ""
 
-#: LetterMatch.py:127 LetterMatch.py:129
+#: activity/activity.info:3
+msgid "alphabet flashcards"
+msgstr ""
+
+#: LetterMatch.py:126 LetterMatch.py:128
 msgid "listen to the letter names"
 msgstr ""
 
-#: LetterMatch.py:139
+#: LetterMatch.py:138
 msgid "Import Image"
 msgstr ""
 
-#: LetterMatch.py:144
+#: LetterMatch.py:143
 msgid "Import Audio"
 msgstr ""
 
-#: LetterMatch.py:159
+#: LetterMatch.py:158
 msgid "Add"
 msgstr ""
 
-#: LetterMatch.py:214
+#: LetterMatch.py:213
 msgid "Please choose image and audio objects from the Journal."
 msgstr ""
 
-#: LetterMatch.py:327
+#: LetterMatch.py:326
 msgid "Click on the picture that matches the letter."
 msgstr ""
 
-#: LetterMatch.py:338
+#: LetterMatch.py:337
 msgid "Click on the letter that matches the picture."
 msgstr ""
 
-#: page.py:198
+#: page.py:241
 msgid "Click on the card that corresponds to the sound."
 msgstr ""
 
-#: page.py:277
+#: page.py:322
 msgid "Very good!"
 msgstr ""
 
-#: page.py:282
+#: page.py:328
 msgid "Please try again."
 msgstr ""
