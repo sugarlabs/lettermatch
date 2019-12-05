@@ -8,57 +8,58 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-01-05 14:24-0500\n"
-"PO-Revision-Date: 2016-06-07 05:53+0000\n"
-"Last-Translator: Zacil <tailiye.san@gmail.com>\n"
+"PO-Revision-Date: 2017-04-13 11:30+0000\n"
+"Last-Translator: Moo <hazap@hotmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: es\n"
+"Language: lt\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"(n%100<10 || n%100>=20) ? 1 : 2);\n"
 "X-Generator: Pootle 2.5.1.1\n"
-"X-POOTLE-MTIME: 1465278838.000000\n"
+"X-POOTLE-MTIME: 1492083041.000000\n"
 
 #: activity/activity.info:2
 msgid "Letter Match"
-msgstr "Correspondencia de letras"
+msgstr ""
 
 #: LetterMatch.py:127 LetterMatch.py:129
 msgid "listen to the letter names"
-msgstr "Escucha los nombres de las letras"
+msgstr ""
 
 #: LetterMatch.py:139
 msgid "Import Image"
-msgstr "Importar imagen"
+msgstr "Importuoti paveikslą"
 
 #: LetterMatch.py:144
 msgid "Import Audio"
-msgstr "Importar audio"
+msgstr "Importuoti garsą"
 
 #: LetterMatch.py:159
 msgid "Add"
-msgstr "Añadir"
+msgstr "Pridėti"
 
 #: LetterMatch.py:214
 msgid "Please choose image and audio objects from the Journal."
-msgstr "Por favor escoga imágenes y audio del diario."
+msgstr ""
 
 #: LetterMatch.py:327
 msgid "Click on the picture that matches the letter."
-msgstr "Pulsa en la imagen que corresponde a la letra."
+msgstr ""
 
 #: LetterMatch.py:338
 msgid "Click on the letter that matches the picture."
-msgstr "Pulsa en la letra que corresponde a la imagen."
+msgstr ""
 
 #: page.py:198
 msgid "Click on the card that corresponds to the sound."
-msgstr "Pulsa en la carta que corresponde al sonido."
+msgstr ""
 
 #: page.py:277
 msgid "Very good!"
-msgstr "¡Muy bien!"
+msgstr "Labai gerai!"
 
 #: page.py:282
 msgid "Please try again."
-msgstr "Por favor intente de nuevo."
+msgstr ""

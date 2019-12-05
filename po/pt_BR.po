@@ -2,63 +2,62 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-01-05 14:24-0500\n"
-"PO-Revision-Date: 2016-06-07 05:53+0000\n"
-"Last-Translator: Zacil <tailiye.san@gmail.com>\n"
+"PO-Revision-Date: 2018-08-20 18:06+0000\n"
+"Last-Translator: Paulo Francisco <slomp@ufrgs.br>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: es\n"
+"Language: pt_BR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Pootle 2.5.1.1\n"
-"X-POOTLE-MTIME: 1465278838.000000\n"
+"X-POOTLE-MTIME: 1534788377.000000\n"
 
 #: activity/activity.info:2
 msgid "Letter Match"
-msgstr "Correspondencia de letras"
+msgstr "Correspondência de letras"
 
 #: LetterMatch.py:127 LetterMatch.py:129
 msgid "listen to the letter names"
-msgstr "Escucha los nombres de las letras"
+msgstr "ouvir os nomes das letras"
 
 #: LetterMatch.py:139
 msgid "Import Image"
-msgstr "Importar imagen"
+msgstr "Importar imagem"
 
 #: LetterMatch.py:144
 msgid "Import Audio"
-msgstr "Importar audio"
+msgstr "Importar áudio"
 
 #: LetterMatch.py:159
 msgid "Add"
-msgstr "Añadir"
+msgstr "Adicionar"
 
 #: LetterMatch.py:214
 msgid "Please choose image and audio objects from the Journal."
-msgstr "Por favor escoga imágenes y audio del diario."
+msgstr "Por favor escolha imagens e áudio do Diário."
 
 #: LetterMatch.py:327
 msgid "Click on the picture that matches the letter."
-msgstr "Pulsa en la imagen que corresponde a la letra."
+msgstr "Clique na imagem que corresponde a letra."
 
 #: LetterMatch.py:338
 msgid "Click on the letter that matches the picture."
-msgstr "Pulsa en la letra que corresponde a la imagen."
+msgstr "Clique na letra que corresponde a imagem."
 
 #: page.py:198
 msgid "Click on the card that corresponds to the sound."
-msgstr "Pulsa en la carta que corresponde al sonido."
+msgstr "Clique no cartão que corresponde ao áudio."
 
 #: page.py:277
 msgid "Very good!"
-msgstr "¡Muy bien!"
+msgstr "Muito bom!"
 
 #: page.py:282
 msgid "Please try again."
-msgstr "Por favor intente de nuevo."
+msgstr "Por favor, tente novamente."

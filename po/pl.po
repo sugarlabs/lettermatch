@@ -8,57 +8,58 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-01-05 14:24-0500\n"
-"PO-Revision-Date: 2016-06-07 05:53+0000\n"
-"Last-Translator: Zacil <tailiye.san@gmail.com>\n"
+"PO-Revision-Date: 2017-12-18 14:56+0000\n"
+"Last-Translator: jszu <jszu@protonmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: es\n"
+"Language: pl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
+"|| n%100>=20) ? 1 : 2);\n"
 "X-Generator: Pootle 2.5.1.1\n"
-"X-POOTLE-MTIME: 1465278838.000000\n"
+"X-POOTLE-MTIME: 1513608999.000000\n"
 
 #: activity/activity.info:2
 msgid "Letter Match"
-msgstr "Correspondencia de letras"
+msgstr "Dopasowanie Liter"
 
 #: LetterMatch.py:127 LetterMatch.py:129
 msgid "listen to the letter names"
-msgstr "Escucha los nombres de las letras"
+msgstr "posłuchaj nazw przypisanych literom"
 
 #: LetterMatch.py:139
 msgid "Import Image"
-msgstr "Importar imagen"
+msgstr "Zaimportuj Obraz"
 
 #: LetterMatch.py:144
 msgid "Import Audio"
-msgstr "Importar audio"
+msgstr "Zaimportuj Dźwięk"
 
 #: LetterMatch.py:159
 msgid "Add"
-msgstr "Añadir"
+msgstr "Dodaj"
 
 #: LetterMatch.py:214
 msgid "Please choose image and audio objects from the Journal."
-msgstr "Por favor escoga imágenes y audio del diario."
+msgstr "Wybierz obiekty obrazu i dźwięku z Dziennika."
 
 #: LetterMatch.py:327
 msgid "Click on the picture that matches the letter."
-msgstr "Pulsa en la imagen que corresponde a la letra."
+msgstr "Kliknij na obrazek pasujący do litery."
 
 #: LetterMatch.py:338
 msgid "Click on the letter that matches the picture."
-msgstr "Pulsa en la letra que corresponde a la imagen."
+msgstr "Kliknij na literę pasującą do obrazka."
 
 #: page.py:198
 msgid "Click on the card that corresponds to the sound."
-msgstr "Pulsa en la carta que corresponde al sonido."
+msgstr "Kliknij na kartę pasującą do dźwięku."
 
 #: page.py:277
 msgid "Very good!"
-msgstr "¡Muy bien!"
+msgstr "Bardzo dobrze!"
 
 #: page.py:282
 msgid "Please try again."
-msgstr "Por favor intente de nuevo."
+msgstr "Spróbuj ponownie."
