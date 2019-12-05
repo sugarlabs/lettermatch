@@ -1,3 +1,18 @@
+9
+
+* Add README (Rudra Sadhu),
+* Fix metadata (Vipul Gupta),
+* Port to Python 3 (Bottersnike),
+* Fix license metadata (James Cameron),
+* Fix PyObject warnings (Srevin Saju),
+* New translations (Chris Leonard et al),
+
+8
+
+* Upper and lower case
+* More robust bounds checking
+* Safer answer generation
+
 7
 
 * Add visual feedback
