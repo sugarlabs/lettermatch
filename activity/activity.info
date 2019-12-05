@@ -1,7 +1,7 @@
 [Activity]
 name = Letter Match
 activity_version = 8
-license = GPLv3
+license = GPLv3+;MIT
 bundle_id = org.sugarlabs.LetterMatch.NI
 exec = sugar-activity3 LetterMatch.LetterMatch
 icon = activity-lettermatch
