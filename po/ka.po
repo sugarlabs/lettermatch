@@ -8,17 +8,20 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-12-05 17:10+1100\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"PO-Revision-Date: 2025-04-14 13:22+0000\n"
+"Last-Translator: NF <rkavt@smartprojects.ge>\n"
+"Language-Team: Georgian <http://weblate.sugarlabs.org/projects/"
+"sugar-activities/lettermatch/ka/>\n"
 "Language: ka\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 5.4.2\n"
 
 #: activity/activity.info:2
 msgid "Letter Match"
-msgstr ""
+msgstr "ასოების დამთხვევა"
 
 #: activity/activity.info:3
 msgid "alphabet flashcards"
@@ -26,40 +29,40 @@ msgstr ""
 
 #: LetterMatch.py:126 LetterMatch.py:128
 msgid "listen to the letter names"
-msgstr ""
+msgstr "მოუსმინეთ ასოს სახელებს"
 
 #: LetterMatch.py:138
 msgid "Import Image"
-msgstr ""
+msgstr "გამოსახულების შემოტანა"
 
 #: LetterMatch.py:143
 msgid "Import Audio"
-msgstr ""
+msgstr "ხმის შემოტანა"
 
 #: LetterMatch.py:158
 msgid "Add"
-msgstr ""
+msgstr "დამატება"
 
 #: LetterMatch.py:213
 msgid "Please choose image and audio objects from the Journal."
-msgstr ""
+msgstr "აირჩიეთ გამოსახულების და აუდიოს ობიექტები ჟურნალიდან."
 
 #: LetterMatch.py:326
 msgid "Click on the picture that matches the letter."
-msgstr ""
+msgstr "დააწკაპუნეთ სურათზე, რომელიც ასოს ემთხვევა."
 
 #: LetterMatch.py:337
 msgid "Click on the letter that matches the picture."
-msgstr ""
+msgstr "დააწკაპუნეთ ასოზე, რომელიც სურათს ემთხვევა."
 
 #: page.py:241
 msgid "Click on the card that corresponds to the sound."
-msgstr ""
+msgstr "დააწკაპუნეთ ბარათზე, რომელიც ხმას შეესაბამება."
 
 #: page.py:322
 msgid "Very good!"
-msgstr ""
+msgstr "ძალიან კარგია!"
 
 #: page.py:328
 msgid "Please try again."
-msgstr ""
+msgstr "თავიდან სცადეთ."
